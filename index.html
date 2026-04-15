@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no"/>
+<meta name="apple-mobile-web-app-title" content="Training"/>
+<title>Training Log</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#000;--surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.1);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#fff;--text2:rgba(255,255,255,.6);--text3:rgba(255,255,255,.35);
+  --blue:#0A84FF;--green:#30D158;--yellow:#FFD60A;--orange:#FF9F0A;
+  --pink:#FF375F;--purple:#BF5AF2;--teal:#5AC8FA;--r:16px;--r2:12px;
+}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Display','Helvetica Neue',Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+input,button{font-family:inherit}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.6)}
+::-webkit-scrollbar{width:0}
+.screen{display:none;max-width:430px;margin:0 auto;padding-bottom:50px;min-height:100vh}
+.screen.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.navbar{position:sticky;top:0;z-index:50;padding:14px 20px 10px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.75);backdrop-filter:blur(30px);border-bottom:1px solid var(--border)}
+.nav-back{background:none;border:none;color:var(--blue);font-size:17px;display:flex;align-items:center;gap:2px;cursor:pointer;padding:4px 0}
+.nav-back::before{content:'‹';font-size:24px;line-height:1}
+.nav-title{font-size:17px;font-weight:600;flex:1}
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:980px;font-weight:600;font-size:15px;padding:12px 22px;cursor:pointer;border:none;transition:opacity .15s,transform .1s;white-space:nowrap}
+.btn:active{opacity:.7;transform:scale(.97)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#000}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border2)}
+.btn-sm{padding:7px 16px;font-size:13px;font-weight:600}
+.btn-full{width:100%}
+.btn-destr{background:rgba(255,55,95,.15);color:var(--pink);border:1px solid rgba(255,55,95,.3)}
+.inp{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:#fff;font-size:16px;padding:13px 16px;border-radius:var(--r2);outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--blue);background:rgba(10,132,255,.08)}
+.inp::placeholder{color:var(--text3)}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:980px}
+.pbar-wrap{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.pbar{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.sec-hdr{font-size:13px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;padding:0 4px;margin-bottom:8px;margin-top:24px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.sheet{background:#1c1c1e;border-radius:20px 20px 0 0;width:100%;max-width:430px;padding:0 0 40px;max-height:94vh;overflow-y:auto}
+.sheet-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:10px auto 0}
+.sheet-close{background:rgba(255,255,255,.12);border:none;color:var(--text2);width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.confirm-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)}
+.confirm-ov.open{display:flex}
+.confirm-box{background:#2c2c2e;border-radius:14px;padding:20px;max-width:280px;width:100%;text-align:center}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 12px;text-align:center}
+.stat-val{font-size:28px;font-weight:700;letter-spacing:-.5px}
+.stat-lbl{font-size:11px;font-weight:500;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.wcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.wcard:active{transform:scale(.98)}
+.excard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px}
+.excard.done{background:rgba(48,209,88,.05);border-color:rgba(48,209,88,.2)}
+.set-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:8px;transition:border-color .2s}
+.inp-num{width:100%;background:rgba(255,255,255,.06);border:1px solid var(--border2);color:#fff;font-size:28px;font-weight:700;padding:12px 8px;border-radius:var(--r2);outline:none;text-align:center;transition:border-color .2s}
+.inp-num:focus{border-color:var(--blue)}
+/* REST TIMER */
+.timer-ov{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:150;display:none;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
+.timer-ov.open{display:flex}
+.timer-ring{width:180px;height:180px;position:relative;margin-bottom:24px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:700;letter-spacing:-2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadeUp .3s cubic-bezier(.4,0,.2,1)}
+@keyframes prpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.pr-badge{animation:prpulse 2s infinite}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
+</head>
+<body>
+<h1 class="sr-only">Training Log — дневник тренировок</h1>
+
+<!-- HOME -->
+<div id="scr-home" class="screen active fadein" role="main">
+  <div style="padding:60px 20px 0">
+    <div style="font-size:13px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Cycling · Full Body</div>
+    <div style="font-size:40px;font-weight:700;letter-spacing:-.8px;line-height:1.1;margin-bottom:28px">Training<br><span style="color:var(--blue)">Log</span></div>
+    <div id="home-stats" style="display:flex;gap:10px;margin-bottom:24px" role="region" aria-label="Статистика тренировок"></div>
+    <div id="home-suggestion" style="display:none;margin-bottom:24px" role="region" aria-label="Следующая тренировка по программе">
+      <div style="font-size:13px;font-weight:600;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">Следующая по программе</div>
+      <div class="card" style="padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div><div id="sug-label" style="font-size:17px;font-weight:600;margin-bottom:2px"></div>
+          <div id="sug-date" style="font-size:13px;color:var(--text2)"></div></div>
+        <button id="sug-btn" class="btn btn-primary btn-sm">Начать</button>
+      </div>
+    </div>
+    <!-- BODY WEIGHT -->
+    <div style="margin-bottom:24px" role="region" aria-label="Мой вес">
+      <div class="sec-hdr" style="margin-top:0">Мой вес</div>
+      <div class="card" style="padding:16px">
+        <div style="display:flex;gap:10px;margin-bottom:8px">
+          <input id="bw-inp" type="number" inputmode="decimal" class="inp" placeholder="кг" style="font-size:17px;padding:11px 14px" aria-label="Введи вес в килограммах"/>
+          <button class="btn btn-green btn-sm" onclick="saveBW()" aria-label="Сохранить вес">Сохранить</button>
+        </div>
+        <div id="bw-last" style="font-size:13px;color:var(--text2)" aria-live="polite"></div>
+      </div>
+    </div>
+    <!-- EXPORT/IMPORT -->
+    <div style="display:flex;gap:8px;margin-bottom:24px">
+      <button class="btn btn-ghost btn-sm" onclick="exportData()" aria-label="Экспортировать данные в JSON файл" style="flex:1;font-size:13px">↓ Экспорт JSON</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-inp').click()" aria-label="Импортировать данные из JSON файла" style="flex:1;font-size:13px">↑ Импорт JSON</button>
+      <input id="import-inp" type="file" accept=".json" style="display:none" onchange="importData(this)"/>
+    </div>
+    <!-- WORKOUTS -->
+    <div class="sec-hdr">Тренировки</div>
+    <div id="wgrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px" role="list" aria-label="Список тренировок"></div>
+    <!-- RECENT -->
+    <div id="recent-section" style="display:none" role="region" aria-label="Последние упражнения">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div class="sec-hdr" style="margin:0">Последние</div>
+        <button onclick="showScreen('scr-history')" style="background:none;border:none;color:var(--blue);font-size:15px;font-weight:500;cursor:pointer" aria-label="Открыть всю историю">История</button>
+      </div>
+      <div id="recent-list" class="card" style="overflow:hidden"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT -->
+<div id="scr-workout" class="screen" role="main">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('scr-home')" aria-label="Назад на главную">Назад</button>
+    <div id="w-title" class="nav-title" style="text-align:center"></div>
+    <div id="w-pct" style="font-size:15px;font-weight:600;color:var(--green);min-width:40px;text-align:right" aria-live="polite" aria-label="Прогресс тренировки"></div>
+  </div>
+  <div id="w-bar-wrap" class="pbar-wrap" style="margin:0;border-radius:0;height:3px" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div id="w-bar" class="pbar" style="background:var(--green)"></div>
+  </div>
+  <div style="padding:16px 20px">
+    <div id="w-chip" style="margin-bottom:14px"></div>
+    <!-- SESSION NOTE -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Заметка к сессии</div>
+      <input id="session-note" type="text" class="inp" placeholder="Самочувствие, вел сегодня, усталость..." style="font-size:14px" aria-label="Заметка к тренировочной сессии"/>
+    </div>
+    <div id="w-info-block" style="display:none;margin-bottom:16px"></div>
+    <div id="ex-list"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="scr-history" class="screen" role="main">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('scr-home')" aria-label="Назад на главную">Назад</button>
+    <div class="nav-title" style="text-align:center">История</div>
+    <div style="min-width:60px"></div>
+  </div>
+  <div style="padding:0 20px">
+    <div id="hist-filters" style="display:flex;gap:8px;padding:12px 0;overflow-x:auto" role="tablist" aria-label="Фильтр по типу тренировки"></div>
+    <div id="hist-list"></div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="scr-progress" class="screen" role="main">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('scr-workout')" aria-label="Назад к тренировке">Назад</button>
+    <div style="flex:1;text-align:center">
+      <div style="font-size:12px;color:var(--text2);font-weight:500">Прогресс</div>
+      <div id="prog-title" style="font-size:17px;font-weight:600"></div>
+    </div>
+    <div id="prog-pr" style="display:none;font-size:13px" aria-label="Личный рекорд">🏆</div>
+  </div>
+  <div id="prog-content" style="padding:16px 20px"></div>
+</div>
+
+<!-- LOG MODAL -->
+<div id="log-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="lm-title">
+  <div id="log-modal" class="sheet">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 20px 0">
+      <div style="padding-top:8px">
+        <div id="lm-badge" style="margin-bottom:6px"></div>
+        <div id="lm-title" style="font-size:22px;font-weight:700;letter-spacing:-.3px"></div>
+        <div id="lm-plan" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
+      </div>
+      <button class="sheet-close" onclick="closeLogModal()" aria-label="Закрыть окно записи">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+        <div class="pbar-wrap" style="flex:1"><div id="lm-prog-bar" class="pbar"></div></div>
+        <div id="lm-prog-txt" style="font-size:13px;font-weight:600;white-space:nowrap" aria-live="polite"></div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Дата</div>
+        <input id="lm-date" type="date" class="inp" style="font-size:15px" aria-label="Дата тренировки"/>
+      </div>
+      <div id="lm-last" style="display:none;margin-bottom:16px"></div>
+      <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px">Подходы</div>
+      <div id="lm-sets"></div>
+      <button onclick="addSet()" class="btn btn-ghost btn-full" style="margin-bottom:14px;font-size:14px" aria-label="Добавить ещё один подход">+ Добавить подход</button>
+      <input id="lm-note" type="text" class="inp" placeholder="Заметка к упражнению..." style="font-size:15px;margin-bottom:14px" aria-label="Заметка к упражнению"/>
+      <div id="lm-totals" style="display:none;margin-bottom:18px"></div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <button onclick="closeLogModal()" class="btn btn-ghost" aria-label="Отменить и закрыть">Отмена</button>
+        <button id="lm-save-btn" onclick="saveLog()" class="btn btn-green" aria-label="Сохранить подходы">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REST TIMER -->
+<div id="timer-overlay" class="timer-ov" role="dialog" aria-modal="true" aria-label="Таймер отдыха">
+  <div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:20px;letter-spacing:.05em;text-transform:uppercase">Отдых</div>
+  <div class="timer-ring" aria-hidden="true">
+    <svg width="180" height="180" viewBox="0 0 180 180">
+      <circle cx="90" cy="90" r="80" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/>
+      <circle id="timer-arc" cx="90" cy="90" r="80" fill="none" stroke="var(--green)" stroke-width="6"
+        stroke-dasharray="502.65" stroke-dashoffset="0" stroke-linecap="round" style="transition:stroke-dashoffset .9s linear"/>
+    </svg>
+    <div class="timer-num" id="timer-num" aria-live="assertive">90</div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+    <button onclick="setTimer(60)" class="btn btn-ghost btn-sm" aria-label="Установить таймер на 60 секунд">60 сек</button>
+    <button onclick="setTimer(90)" class="btn btn-ghost btn-sm" aria-label="Установить таймер на 90 секунд">90 сек</button>
+    <button onclick="setTimer(120)" class="btn btn-ghost btn-sm" aria-label="Установить таймер на 120 секунд">120 сек</button>
+  </div>
+  <button onclick="closeTimer()" class="btn btn-ghost" style="min-width:160px" aria-label="Пропустить отдых и закрыть таймер">Пропустить</button>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm-ov" class="confirm-ov" role="alertdialog" aria-modal="true" aria-labelledby="conf-title">
+  <div class="confirm-box fadein">
+    <div id="conf-title" style="font-size:17px;font-weight:700;margin-bottom:6px"></div>
+    <div id="conf-text" style="font-size:14px;color:var(--text2);margin-bottom:20px"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="conf-ok" class="btn btn-destr btn-full">Удалить</button>
+      <button onclick="closeConfirm()" class="btn btn-ghost btn-full">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── SCHEMA + DATA ────────────────────────────────────────────
+const SCHEMA_V = 1;
+const LS = 'tl_standalone_v1';
+let DB = {schemaVersion:SCHEMA_V, logs:[], bws:[], custom:{}, sessions:{}};
+
+function migrateDB(data){
+  if(!data.schemaVersion){ data.schemaVersion=1; }
+  if(!data.sessions) data.sessions = {};
+  if(!data.custom) data.custom = {};
+  return data;
+}
+
+try{
+  const r = localStorage.getItem(LS);
+  if(r){ DB = migrateDB(JSON.parse(r)); }
+}catch(e){ console.warn('Load error', e); }
+
+function save(){
+  try{
+    localStorage.setItem(LS, JSON.stringify(DB));
+  }catch(e){
+    if(e.name === 'QuotaExceededError'){
+      alert('⚠️ Хранилище заполнено (лимит ~5MB). Сделай экспорт данных и удали старые записи.');
+    } else {
+      alert('Ошибка сохранения: ' + e.message);
+    }
+  }
+}
+
+// ─── EXPORT / IMPORT ─────────────────────────────────────────
+function exportData(){
+  const json = JSON.stringify(DB, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'training-log-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(inp){
+  const file = inp.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed.logs || !Array.isArray(parsed.logs)){
+        alert('Неверный формат файла. Ожидается Training Log JSON.');
+        return;
+      }
+      if(!confirm(`Импортировать ${parsed.logs.length} записей? Они объединятся с текущими данными.`)) return;
+      // Merge — deduplicate by id
+      const existingIds = new Set(DB.logs.map(l=>l.id));
+      const newLogs = parsed.logs.filter(l=>!existingIds.has(l.id));
+      DB.logs = [...DB.logs, ...newLogs];
+      const existingBwIds = new Set(DB.bws.map(b=>b.id));
+      DB.bws = [...DB.bws, ...(parsed.bws||[]).filter(b=>!existingBwIds.has(b.id))];
+      DB.custom = {...(parsed.custom||{}), ...DB.custom};
+      DB.sessions = {...(parsed.sessions||{}), ...DB.sessions};
+      save(); renderHome();
+      alert(`✅ Импортировано ${newLogs.length} новых записей.`);
+    }catch(err){ alert('Ошибка чтения файла: ' + err.message); }
+  };
+  reader.readAsText(file);
+  inp.value = '';
+}
+
+// ─── WORKOUTS ────────────────────────────────────────────────
+const BASE = {
+  GYM_A:{label:'Зал А',color:'var(--yellow)',colorHex:'#FFD60A',tag:'Зал',pair:'GYM_B',exercises:[
+    {name:'Жим штанги лёжа',plan:'4 × 6–8',muscle:'Грудь · дельты · трицепс',gif:'bench press barbell'},
+    {name:'Тяга штанги в наклоне',plan:'4 × 6–8',muscle:'Широчайшие · ромбовидные',gif:'barbell bent over row'},
+    {name:'Face Pull на блоке',plan:'3 × 15',muscle:'Задние дельты · манжета',gif:'cable face pull'},
+    {name:'Боковые подъёмы гантелей',plan:'3 × 12',muscle:'Средние дельты',gif:'dumbbell lateral raise'},
+    {name:'Подъём штанги на бицепс',plan:'3 × 10',muscle:'Бицепс',gif:'barbell bicep curl'},
+    {name:'Ягодичный мост со штангой',plan:'3 × 15',muscle:'Ягодицы',gif:'barbell hip thrust'},
+    {name:'Abduction machine',plan:'3 × 15',muscle:'Средняя ягодичная',gif:'hip abduction machine'},
+    {name:'Подъём ног в висе',plan:'3 × 12',muscle:'Кор',gif:'hanging leg raise'},
+    {name:'Подъём на носки тренажёр',plan:'3 × 15',muscle:'Икры',gif:'standing calf raise machine'},
+  ]},
+  GYM_B:{label:'Зал Б',color:'var(--yellow)',colorHex:'#FFD60A',tag:'Зал',pair:'GYM_A',exercises:[
+    {name:'Становая тяга',plan:'4 × 5',muscle:'Задняя цепь · сила',gif:'conventional deadlift'},
+    {name:'Военный жим стоя',plan:'4 × 6–8',muscle:'Плечи · трицепс · кор',gif:'overhead barbell press'},
+    {name:'Подтягивания широким хватом',plan:'3 × 8–10',muscle:'Широчайшие · бицепс',gif:'wide grip pull up'},
+    {name:'Тяга гантели одной рукой',plan:'3 × 10',muscle:'Широчайшие · дельты',gif:'single arm dumbbell row'},
+    {name:'Внешняя ротация плеча',plan:'3 × 15',muscle:'Вращательная манжета',gif:'external shoulder rotation'},
+    {name:'Разгибание трицепс блок',plan:'3 × 12',muscle:'Трицепс',gif:'tricep pushdown cable'},
+    {name:'Leg Curl',plan:'3 × 12',muscle:'Бицепс бедра',gif:'lying leg curl machine'},
+    {name:'Отведение ноги в кроссовере',plan:'3 × 15',muscle:'Средняя ягодичная · ТБС',gif:'cable hip abduction standing'},
+    {name:'Подъём на носки тренажёр',plan:'3 × 15',muscle:'Икры',gif:'calf raise machine'},
+  ]},
+  STREET_A:{label:'Улица А',color:'var(--green)',colorHex:'#30D158',tag:'Улица',pair:'STREET_B',exercises:[
+    {name:'Подтягивания широким хватом',plan:'4 × 6–8',muscle:'Широчайшие · бицепс',gif:'wide grip pull up'},
+    {name:'Отжимания ноги на возвышении',plan:'3 × 12',muscle:'Верхняя грудь · дельты',gif:'decline push up'},
+    {name:'Австралийские подтягивания',plan:'3 × 12',muscle:'Горизонт. тяга',gif:'australian pull up inverted row'},
+    {name:'Боковые подъёмы с резинкой',plan:'3 × 15',muscle:'Средние дельты',gif:'lateral raise resistance band'},
+    {name:'Бицепс с резинкой',plan:'3 × 12',muscle:'Бицепс',gif:'bicep curl resistance band'},
+    {name:'Мост одной ногой',plan:'3 × 12',muscle:'Ягодицы · стаб. колена',gif:'single leg glute bridge'},
+    {name:'Clamshell с резинкой',plan:'3 × 15',muscle:'Средняя ягодичная',gif:'clamshell exercise band'},
+    {name:'Подъём ног в висе',plan:'3 × 10–12',muscle:'Кор',gif:'hanging leg raise'},
+    {name:'Подъём на носки 1 нога',plan:'3 × 15',muscle:'Икры',gif:'single leg calf raise'},
+  ]},
+  STREET_B:{label:'Улица Б',color:'var(--green)',colorHex:'#30D158',tag:'Улица',pair:'STREET_A',exercises:[
+    {name:'Отжимания на брусьях',plan:'4 × 8–10',muscle:'Грудь · дельты · трицепс',gif:'chest dips parallel bars'},
+    {name:'Chin-up обратный хват',plan:'3 × 8',muscle:'Бицепс · широчайшие',gif:'chin up underhand grip'},
+    {name:'Австралийские подтягивания',plan:'3 × 12',muscle:'Горизонт. тяга',gif:'inverted row'},
+    {name:'Face Pull с резинкой',plan:'3 × 15',muscle:'Задние дельты',gif:'face pull resistance band'},
+    {name:'Обратные отжимания на скамье',plan:'3 × 12',muscle:'Трицепс',gif:'tricep bench dips'},
+    {name:'Мост одной ногой',plan:'3 × 12',muscle:'Ягодицы · стаб. колена',gif:'single leg glute bridge'},
+    {name:'Боковые шаги с резинкой',plan:'3 × 20',muscle:'Средняя ягодичная',gif:'lateral band walk'},
+    {name:'Боковая планка с ротацией',plan:'3 × 8',muscle:'Кор · косые',gif:'side plank rotation'},
+    {name:'Подъём на носки 1 нога',plan:'3 × 15',muscle:'Икры',gif:'single leg calf raise'},
+  ]},
+  HOME_A:{label:'Дома А',color:'var(--teal)',colorHex:'#5AC8FA',tag:'Дом',pair:'HOME_B',exercises:[
+    {name:'Свинг гирей 24кг',plan:'4 × 15',muscle:'Задняя цепь · ягодицы',gif:'kettlebell swing'},
+    {name:'Тяга гири 24кг в наклоне',plan:'4 × 10',muscle:'Широчайшие · ромбовидные',gif:'kettlebell single arm row'},
+    {name:'Жим гири 16кг стоя',plan:'3 × 8',muscle:'Средние дельты · трицепс',gif:'kettlebell overhead press'},
+    {name:'Боковые подъёмы резинка',plan:'3 × 15',muscle:'Средние дельты',gif:'lateral raise band'},
+    {name:'Бицепс гиря 16кг',plan:'3 × 10',muscle:'Бицепс',gif:'kettlebell bicep curl'},
+    {name:'Мост 1 нога + гиря 16кг',plan:'3 × 12',muscle:'Ягодицы · стаб. колена',gif:'single leg hip thrust weighted'},
+    {name:'Отведение ноги якорь+манжета',plan:'3 × 15',muscle:'Средняя ягодичная',gif:'standing hip abduction band'},
+    {name:'Подъём ног лёжа',plan:'3 × 12',muscle:'Кор',gif:'lying leg raise'},
+    {name:'Подъём на носки 24кг',plan:'3 × 15',muscle:'Икры',gif:'weighted calf raise kettlebell'},
+  ]},
+  HOME_B:{label:'Дома Б',color:'var(--teal)',colorHex:'#5AC8FA',tag:'Дом',pair:'HOME_A',exercises:[
+    {name:'Отжимания резинка 16–39кг',plan:'4 × 10–12',muscle:'Грудь · трицепс',gif:'push up resistance band'},
+    {name:'Face Pull через якорь',plan:'3 × 15',muscle:'Задние дельты · манжета',gif:'face pull band door anchor'},
+    {name:'Тяга резинки к поясу',plan:'3 × 12',muscle:'Широчайшие · ромбовидные',gif:'seated row resistance band'},
+    {name:'Разгибание гири 16кг',plan:'3 × 12',muscle:'Трицепс',gif:'overhead tricep extension kettlebell'},
+    {name:'Сгибание ноги якорь+манжета',plan:'3 × 12',muscle:'Бицепс бедра',gif:'lying leg curl resistance band'},
+    {name:'Отведение ноги якорь+манжета',plan:'3 × 15',muscle:'Средняя ягодичная',gif:'standing hip abduction band'},
+    {name:'Боковые шаги 11–30кг',plan:'3 × 20',muscle:'Средняя ягодичная',gif:'lateral band walk'},
+    {name:'Планка колено к локтю',plan:'3 × 8',muscle:'Кор · косые',gif:'mountain climber plank'},
+    {name:'Подъём на носки 24кг',plan:'3 × 15',muscle:'Икры',gif:'weighted calf raise kettlebell'},
+  ]},
+  HOME_C:{label:'Дома В',color:'var(--teal)',colorHex:'#5AC8FA',tag:'Дом',pair:'HOME_D',exercises:[
+    {name:'Тяга к груди через якорь+ручки',plan:'4 × 12',muscle:'Широчайшие · бицепс',equip:'🔗 Якорь высоко · 2 ручки+карабины · 16–39кг',gif:'resistance band seated row handles'},
+    {name:'Жим резинки от груди',plan:'4 × 12',muscle:'Грудь · трицепс',equip:'🔗 Якорь на уровне плеч · 2 ручки+карабины · 16–39кг',gif:'resistance band chest press standing'},
+    {name:'Face Pull через якорь+ручки',plan:'3 × 15',muscle:'Задние дельты · манжета',equip:'🔗 Якорь высоко · 2 ручки+карабины · 7–16кг',gif:'face pull band door anchor'},
+    {name:'Жим резинки от плеч стоя',plan:'3 × 10',muscle:'Средние дельты · трицепс',equip:'👟 Встать на резинку · 2 ручки+карабины · 11–30кг',gif:'resistance band overhead press'},
+    {name:'Бицепс с резинкой+ручки',plan:'3 × 12',muscle:'Бицепс',equip:'🔗 Якорь низко · 2 ручки+карабины · 11–30кг',gif:'resistance band bicep curl handles'},
+    {name:'Разгибание трицепса через якорь',plan:'3 × 12',muscle:'Трицепс',equip:'🔗 Якорь высоко · 1 ручка+карабин · 11–30кг',gif:'resistance band tricep pushdown'},
+    {name:'Terminal Knee Extension с резинкой',plan:'3 × 15',muscle:'ВМО · стабилизация колена',equip:'🔗 Якорь низко · резинка вокруг колена · 7–16кг',gif:'terminal knee extension resistance band'},
+    {name:'Отведение ноги в сторону с манжетой',plan:'3 × 15',muscle:'Gluteus medius · стаб. колена',equip:'🔗 Якорь низко · манжета+карабин · 11–30кг',gif:'standing hip abduction ankle strap cable'},
+    {name:'Планка с тягой резинки',plan:'3 × 10',muscle:'Кор · широчайшие',equip:'🔗 Якорь низко · 1 ручка+карабин · 7–16кг',gif:'plank row resistance band'},
+  ]},
+  HOME_D:{label:'Дома Г',color:'var(--teal)',colorHex:'#5AC8FA',tag:'Дом',pair:'HOME_C',exercises:[
+    {name:'Тяга резинки в наклоне',plan:'4 × 12',muscle:'Широчайшие · ромбовидные',equip:'👟 Встать на резинку · 2 ручки+карабины · 23–57кг',gif:'resistance band bent over row'},
+    {name:'Отжимания с резинкой',plan:'4 × 10–12',muscle:'Грудь · трицепс',equip:'💪 Резинка через спину · 16–39кг',gif:'push up resistance band'},
+    {name:'Боковые подъёмы с резинкой',plan:'3 × 15',muscle:'Средние дельты',equip:'👟 Встать на резинку · 2 ручки+карабины · 7–16кг',gif:'lateral raise resistance band'},
+    {name:'Тяга резинки к подбородку',plan:'3 × 12',muscle:'Трапеции · дельты',equip:'👟 Встать на резинку · 2 ручки+карабины · 11–30кг',gif:'resistance band upright row'},
+    {name:'Бицепс с манжетой через якорь',plan:'3 × 12',muscle:'Бицепс',equip:'🔗 Якорь низко · 2 ручки+карабины · 11–30кг',gif:'bicep curl cable ankle strap'},
+    {name:'Разгибание трицепса за головой',plan:'3 × 12',muscle:'Трицепс длинная головка',equip:'🔗 Якорь низко · 1 ручка+карабин · 11–30кг',gif:'overhead tricep extension resistance band'},
+    {name:'Сгибание ноги с манжетой лёжа',plan:'3 × 12',muscle:'Бицепс бедра · колено',equip:'🔗 Якорь низко · манжета+карабин · 11–30кг',gif:'lying leg curl resistance band ankle strap'},
+    {name:'Bulgarian Split Squat с резинкой',plan:'3 × 10',muscle:'Квадрицепс · стаб. колена',equip:'💪 Резинка через плечи · 16–39кг',gif:'bulgarian split squat resistance band'},
+    {name:'Боковая планка с ротацией',plan:'3 × 8',muscle:'Кор · косые',equip:'— без оборудования',gif:'side plank rotation'},
+  ]},
+  STRETCH_A:{label:'Растяжка А',color:'var(--purple)',colorHex:'#BF5AF2',tag:'Колено',pair:'STRETCH_B',
+    info:{time:'10–12 мин',when:'✔ перед велосипедом  ✔ утром  ✔ после силовой',
+      tip:'💡 Monster Walk + Glute Bridge перед заездом — ягодицы включаются лучше, нагрузка на колено снижается.'},
+    exercises:[
+      {name:'Monster Walk',plan:'2 × 20 шагов',muscle:'Активация gluteus medius',gif:'monster walk resistance band'},
+      {name:'Copenhagen Plank',plan:'3 × 20–30сек',muscle:'Аддукторы · кор',gif:'copenhagen plank'},
+      {name:'Step-down',plan:'3 × 10',muscle:'Контроль колена · квадрицепс',gif:'step down exercise knee control'},
+      {name:'Glute Bridge',plan:'3 × 15',muscle:'Активация ягодиц',gif:'glute bridge bodyweight'},
+      {name:'Растяжка TFL / IT band',plan:'2 × 40сек',muscle:'ТФЛ · IT-тракт',gif:'TFL IT band stretch'},
+    ]},
+  STRETCH_B:{label:'Растяжка Б',color:'var(--purple)',colorHex:'#BF5AF2',tag:'Колено',pair:'STRETCH_A',
+    info:{time:'10–15 мин',when:'✔ после тренировки  ✔ в день отдыха',
+      tip:'💡 Якорь у пола, лента вокруг стопы — тянешь в разные стороны. Укрепляет связки и стабилизаторы колена.'},
+    exercises:[
+      {name:'Дорсифлексия стопы с резинкой',plan:'3 × 15',muscle:'Передняя большеберцовая',gif:'dorsiflexion resistance band ankle'},
+      {name:'Эверсия стопы с резинкой',plan:'3 × 15',muscle:'Малоберцовые · лат. связки',gif:'eversion ankle resistance band'},
+      {name:'Инверсия стопы с резинкой',plan:'3 × 15',muscle:'Задняя большеберцовая · мед. связки',gif:'inversion ankle resistance band'},
+      {name:'Terminal Knee Extension с резинкой',plan:'3 × 15',muscle:'ВМО · стабилизация колена',gif:'terminal knee extension resistance band'},
+    ]},
+};
+
+function getEx(wKey,name){const c=DB.custom[wKey+'__'+name];const b=BASE[wKey].exercises.find(e=>e.name===name);return c?{...b,...c}:b;}
+function getW(wKey){return{...BASE[wKey],exercises:BASE[wKey].exercises.map(e=>getEx(wKey,e.name))};}
+
+// ─── UTILS ────────────────────────────────────────────────────
+const todayISO=()=>new Date().toISOString().split('T')[0];
+const fmt=iso=>new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+const fmtL=iso=>new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'short',year:'numeric'});
+const maxW=sets=>sets.length?Math.max(...sets.map(s=>parseFloat(s.weight||0))):0;
+const vol=sets=>sets.reduce((a,s)=>a+(parseFloat(s.weight||0)*parseInt(s.reps||0)),0);
+const openGif=q=>window.open('https://www.google.com/search?q='+encodeURIComponent(q+' exercise gif')+'&tbm=isch','_blank');
+function haptic(ms=50){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch{} }
+
+// ─── PROGRESSION (улучшенная логика) ─────────────────────────
+function getProgressionHint(wKey, exName){
+  const recent=[...DB.logs].filter(l=>l.wKey===wKey&&l.exName===exName)
+    .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  if(recent.length<2) return null;
+  const w0=maxW(recent[0].sets), w1=maxW(recent[1].sets);
+  // Подсказка если: одинаковый вес 2+ раза подряд И суммарных повторений ≥ минимального плана
+  const ex=getEx(wKey,exName);
+  const planMin=parseInt((ex.plan.match(/(\d+)[\s×x]+(\d+)/)||[0,0,0])[2])||6;
+  const totalReps0=recent[0].sets.reduce((s,st)=>s+parseInt(st.reps||0),0);
+  const planned=parseInt((ex.plan.match(/^(\d+)/)||[0,3])[1]);
+  if(w0>0 && w0===w1 && totalReps0>=planMin*planned) return w0;
+  return null;
+}
+
+// ─── STATE (изолированный) ────────────────────────────────────
+let curWorkout=null, histFilter='ALL', confirmCb=null;
+// Состояние модалки изолировано в объекте — не глобальные переменные
+const LM = {sets:[], wKey:'', exName:'', editId:null, planned:3, colorHex:'#30D158', sid:''};
+
+// ─── REST TIMER ───────────────────────────────────────────────
+let timerInterval=null, timerTotal=90, timerLeft=90;
+const CIRC=502.65;
+
+function openTimer(sec=90){
+  timerTotal=sec; timerLeft=sec;
+  document.getElementById('timer-num').textContent=sec;
+  document.getElementById('timer-arc').style.strokeDashoffset='0';
+  document.getElementById('timer-overlay').classList.add('open');
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timerLeft--;
+    document.getElementById('timer-num').textContent=timerLeft;
+    const pct=1-(timerLeft/timerTotal);
+    document.getElementById('timer-arc').style.strokeDashoffset=(CIRC*pct)+'';
+    if(timerLeft<=0){
+      clearInterval(timerInterval);
+      haptic([100,50,100]);
+      document.getElementById('timer-num').textContent='🎯';
+      setTimeout(()=>closeTimer(),1200);
+    }
+  },1000);
+}
+function setTimer(sec){ clearInterval(timerInterval); openTimer(sec); }
+function closeTimer(){ clearInterval(timerInterval); document.getElementById('timer-overlay').classList.remove('open'); }
+
+// ─── ROUTING ──────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById(id);
+  el.classList.add('active');
+  el.classList.remove('fadein'); void el.offsetWidth; el.classList.add('fadein');
+  window.scrollTo(0,0);
+  if(id==='scr-home') renderHome();
+  if(id==='scr-history') renderHistory();
+}
+
+// ─── HOME ─────────────────────────────────────────────────────
+function renderHome(){
+  const logs=DB.logs, bws=DB.bws;
+  const sessions=new Set(logs.map(l=>l.sid)).size;
+  const d=new Date(), ws=new Date(d), we=new Date(d);
+  ws.setDate(d.getDate()-d.getDay()+1); we.setDate(d.getDate()-d.getDay()+7);
+  const wsISO=ws.toISOString().split('T')[0], weISO=we.toISOString().split('T')[0];
+  const wkSess=new Set(logs.filter(l=>l.date>=wsISO&&l.date<=weISO).map(l=>l.sid)).size;
+  const sortedBW=[...bws].sort((a,b)=>a.date.localeCompare(b.date));
+  const lastBW=sortedBW[sortedBW.length-1];
+
+  document.getElementById('home-stats').innerHTML=
+    `<div class="stat-card" role="listitem"><div class="stat-val" style="color:var(--yellow)">${sessions}</div><div class="stat-lbl">Сессий</div></div>`+
+    `<div class="stat-card" role="listitem"><div class="stat-val" style="color:var(--blue)">${wkSess}</div><div class="stat-lbl">Эта неделя</div></div>`+
+    `<div class="stat-card" role="listitem"><div class="stat-val" style="color:var(--green)">${lastBW?lastBW.weight+'кг':'—'}</div><div class="stat-lbl">Вес</div></div>`;
+
+  const sug=suggestNext();
+  const sugEl=document.getElementById('home-suggestion');
+  if(sug){
+    document.getElementById('sug-label').textContent=BASE[sug.key].label;
+    document.getElementById('sug-date').textContent='Последняя: '+fmtL(sug.lastDate);
+    document.getElementById('sug-btn').onclick=()=>openWorkout(sug.key);
+    sugEl.style.display='block';
+  } else sugEl.style.display='none';
+
+  document.getElementById('bw-inp').value='';
+  document.getElementById('bw-last').textContent=lastBW?'Последний: '+lastBW.weight+' кг  ·  '+fmtL(lastBW.date):'';
+
+  document.getElementById('wgrid').innerHTML=Object.entries(BASE).map(([key,w])=>{
+    const cnt=new Set(logs.filter(l=>l.wKey===key).map(l=>l.sid)).size;
+    const isNext=sug&&sug.key===key;
+    return `<div class="wcard" role="listitem" onclick="openWorkout('${key}')" tabindex="0"
+      onkeydown="if(event.key==='Enter')openWorkout('${key}')"
+      aria-label="Тренировка ${w.label}${isNext?' — следующая по программе':''}"
+      style="${isNext?'border-color:'+w.colorHex+'55;background:'+w.colorHex+'0A':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <span class="chip" style="background:${w.colorHex}20;color:${w.colorHex}">${w.tag}</span>
+        ${isNext?`<span style="font-size:11px;color:${w.colorHex};font-weight:600">← след.</span>`:''}
+      </div>
+      <div style="font-size:19px;font-weight:700;margin-bottom:4px">${w.label}</div>
+      <div style="font-size:13px;color:var(--text2)">${cnt>0?cnt+' сессий':'Нет данных'}</div>
+    </div>`;
+  }).join('');
+
+  const recent=[...logs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+  const recSec=document.getElementById('recent-section');
+  if(recent.length){
+    recSec.style.display='block';
+    document.getElementById('recent-list').innerHTML=recent.map((l,i)=>{
+      const wc=BASE[l.wKey]?.colorHex||'#FFD60A';
+      return `<div style="padding:13px 16px;${i<recent.length-1?'border-bottom:1px solid var(--border)':''}display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:15px;font-weight:600;margin-bottom:2px">${l.exName}</div>
+          <div style="font-size:13px;color:var(--text2)">${BASE[l.wKey]?.label||''} · ${fmtL(l.date)}</div></div>
+        <div style="text-align:right">
+          <div style="font-size:17px;font-weight:700;color:${wc}">${maxW(l.sets)} кг</div>
+          <div style="font-size:12px;color:var(--text3)">${l.sets.length} подх.</div>
+        </div>
+      </div>`;
+    }).join('');
+  } else recSec.style.display='none';
+}
+
+function saveBW(){
+  const v=parseFloat(document.getElementById('bw-inp').value);
+  if(!v||v<=0) return;
+  haptic(40);
+  DB.bws.push({id:Date.now()+'',date:todayISO(),weight:v});
+  save(); renderHome();
+}
+
+function suggestNext(){
+  if(!DB.logs.length) return null;
+  const last=[...DB.logs].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const w=BASE[last.wKey]; if(!w||!w.pair) return null;
+  return{key:w.pair,lastDate:last.date};
+}
+
+// ─── WORKOUT ──────────────────────────────────────────────────
+function openWorkout(wKey){
+  curWorkout=wKey;
+  const w=getW(wKey); const base=BASE[wKey];
+  // Генерируем sid для этой сессии (если ещё не начата сегодня)
+  const today=todayISO();
+  const todaySid=DB.logs.find(l=>l.wKey===wKey&&l.date===today)?.sid || (Date.now()+'');
+  LM.sid=todaySid;
+
+  document.getElementById('w-title').textContent=w.label;
+  document.getElementById('w-chip').innerHTML=`<span class="chip" style="background:${base.colorHex}20;color:${base.colorHex}">${base.tag}</span>`;
+
+  // Восстановить заметку к сессии если есть
+  const sessNote=DB.sessions[todaySid]?.note||'';
+  document.getElementById('session-note').value=sessNote;
+  document.getElementById('session-note').oninput=e=>{
+    if(!DB.sessions[todaySid]) DB.sessions[todaySid]={wKey,date:today};
+    DB.sessions[todaySid].note=e.target.value;
+    save();
+  };
+
+  const todayLogs=DB.logs.filter(l=>l.wKey===wKey&&l.date===today);
+  const doneNames=new Set(todayLogs.map(l=>l.exName));
+  const pct=Math.round(doneNames.size/w.exercises.length*100);
+  document.getElementById('w-pct').textContent=pct+'%';
+  document.getElementById('w-bar').style.width=pct+'%';
+  document.getElementById('w-bar').style.background=base.colorHex;
+  document.getElementById('w-bar-wrap').setAttribute('aria-valuenow',pct);
+
+  const infoEl=document.getElementById('w-info-block');
+  if(base.info){
+    infoEl.style.display='block';
+    infoEl.innerHTML=`<div class="card" style="padding:16px;border-color:${base.colorHex}33" role="note" aria-label="Информация о тренировке">
+      <div style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap">
+        <div><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Время</div>
+          <div style="font-size:15px;font-weight:600;color:${base.colorHex}">${base.info.time}</div></div>
+        <div style="flex:1;min-width:160px"><div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">Когда</div>
+          <div style="font-size:13px;line-height:1.6">${base.info.when}</div></div>
+      </div>
+      <div style="background:${base.colorHex}12;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6">${base.info.tip}</div>
+    </div>`;
+  } else infoEl.style.display='none';
+
+  document.getElementById('ex-list').innerHTML=w.exercises.map((ex,i)=>{
+    const bEx=BASE[wKey].exercises[i];
+    const isMod=!!DB.custom[wKey+'__'+bEx.name];
+    const done=doneNames.has(ex.name);
+    const last=[...DB.logs].filter(l=>l.wKey===wKey&&l.exName===ex.name).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const todayLog=todayLogs.find(l=>l.exName===ex.name);
+    const hint=getProgressionHint(wKey,ex.name);
+    return `<div class="excard${done?' done':''}" role="article" aria-label="Упражнение: ${ex.name}${done?', выполнено':''}">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+            ${done?`<span aria-hidden="true" style="color:${base.colorHex};font-size:14px">✓</span>`:''}
+            <span style="font-size:16px;font-weight:600;color:${done?'var(--text2)':'var(--text)'}">${ex.name}</span>
+            ${isMod?`<span class="chip" style="background:rgba(10,132,255,.15);color:var(--blue);font-size:10px">изменено</span>`:''}
+            ${hint?`<span class="pr-badge chip" style="background:rgba(255,214,10,.15);color:var(--yellow);font-size:10px" role="status" aria-label="Рекомендуется увеличить вес на 2.5 кг">▲ +2.5кг</span>`:''}
+          </div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:${ex.equip||last?'4px':'0'}">${ex.plan} · ${ex.muscle}</div>
+          ${ex.equip?`<div style="font-size:12px;color:var(--teal);opacity:.7;margin-bottom:${last?'4px':'0'}">${ex.equip}</div>`:''}
+          ${last?`<div style="font-size:12px;color:${base.colorHex};opacity:.8">Прошлый: ${maxW(last.sets)} кг · ${fmt(last.date)}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0">
+          <div style="display:flex;gap:6px">
+            <button onclick="openLogModal('${wKey}','${ex.name}',null,'${todaySid}')"
+              aria-label="${done?'Добавить ещё подход к '+ex.name:'Записать подход для '+ex.name}"
+              class="btn btn-sm" style="background:${done?'rgba(255,255,255,.08)':''+base.colorHex+'22'};color:${done?'var(--text2)':base.colorHex};border:1px solid ${done?'var(--border)':base.colorHex+'44'}">${done?'+ ещё':'+ Лог'}</button>
+            ${todayLog?`<button onclick="openLogModal('${wKey}','${ex.name}','${todayLog.id}','${todaySid}')"
+              aria-label="Редактировать запись ${ex.name}" class="btn btn-sm"
+              style="background:rgba(255,214,10,.1);color:var(--yellow);border:1px solid rgba(255,214,10,.3)">✎</button>`:''}
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="openGif('${ex.gif}')" aria-label="Посмотреть GIF-демонстрацию упражнения ${ex.name}"
+              class="btn btn-sm" style="background:rgba(255,55,95,.1);color:var(--pink);border:1px solid rgba(255,55,95,.3)">GIF</button>
+            <button onclick="openProgress('${wKey}','${ex.name}')" aria-label="Открыть график прогресса для ${ex.name}"
+              class="btn btn-sm" style="background:rgba(10,132,255,.1);color:var(--blue);border:1px solid rgba(10,132,255,.3)">📈</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  showScreen('scr-workout');
+}
+
+// ─── LOG MODAL ────────────────────────────────────────────────
+function openLogModal(wKey, exName, editId, sid){
+  LM.wKey=wKey; LM.exName=exName; LM.editId=editId||null; LM.sid=sid||LM.sid;
+  const base=BASE[wKey]; LM.colorHex=base.colorHex;
+  const ex=getEx(wKey,exName);
+  LM.planned=parseInt((ex.plan.match(/^(\d+)/)||[0,3])[1]);
+
+  document.getElementById('lm-badge').innerHTML=`<span class="chip" style="background:${LM.colorHex}20;color:${LM.colorHex}">${editId?'Редактировать':'Запись'}</span>`;
+  document.getElementById('lm-title').textContent=ex.name;
+  document.getElementById('lm-plan').textContent='План: '+ex.plan;
+  document.getElementById('lm-prog-bar').style.background=LM.colorHex;
+  document.getElementById('lm-save-btn').textContent=editId?'Обновить':'Сохранить';
+
+  if(editId){
+    const existing=DB.logs.find(l=>l.id===editId);
+    LM.sets=existing.sets.map(s=>({weight:s.weight,reps:s.reps}));
+    document.getElementById('lm-note').value=existing.note||'';
+    document.getElementById('lm-date').value=existing.date;
+    document.getElementById('lm-last').style.display='none';
+  } else {
+    const last=[...DB.logs].filter(l=>l.wKey===wKey&&l.exName===exName).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    LM.sets=last?last.sets.map(s=>({weight:s.weight,reps:s.reps})):[{weight:'',reps:''}];
+    document.getElementById('lm-note').value='';
+    document.getElementById('lm-date').value=todayISO();
+    const lastEl=document.getElementById('lm-last');
+    if(last){
+      lastEl.style.display='block';
+      lastEl.innerHTML=`<div class="card" style="padding:12px 14px;border-color:${LM.colorHex}33;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div style="font-size:13px;color:${LM.colorHex};flex:1">${fmtL(last.date)}: ${last.sets.map(s=>s.weight+'кг×'+s.reps).join(' / ')}</div>
+        <button onclick="copyLast('${last.id}')" class="btn btn-sm btn-ghost" aria-label="Скопировать веса из прошлой сессии">Копировать</button>
+      </div>`;
+    } else lastEl.style.display='none';
+  }
+  renderSets();
+  document.getElementById('log-overlay').classList.add('open');
+}
+
+function copyLast(id){const l=DB.logs.find(x=>x.id===id);if(l){LM.sets=l.sets.map(s=>({weight:s.weight,reps:s.reps}));renderSets();}}
+
+function renderSets(){
+  document.getElementById('lm-prog-bar').style.background=LM.colorHex;
+  document.getElementById('lm-sets').innerHTML=LM.sets.map((s,i)=>{
+    const f=s.weight&&s.reps;
+    return `<div id="set-card-${i}" class="set-card" style="${f?'border-color:'+LM.colorHex+'44':''}" role="group" aria-label="Подход ${i+1}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span id="set-label-${i}" style="font-size:13px;font-weight:600;color:${f?LM.colorHex:'var(--text2)'}" aria-live="polite">Подход ${i+1}${f?' ✓':''}</span>
+        ${LM.sets.length>1?`<button onclick="removeSet(${i})" aria-label="Удалить подход ${i+1}"
+          style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1">×</button>`:''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Вес (кг)</div>
+          <input type="number" inputmode="decimal" class="inp-num" value="${s.weight}"
+            aria-label="Вес в подходе ${i+1} в килограммах"
+            oninput="LM.sets[${i}].weight=this.value;updateSetStats()"
+            style="color:${LM.colorHex}"/></div>
+        <div><div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px">Повторений</div>
+          <input type="number" inputmode="numeric" class="inp-num" value="${s.reps}"
+            aria-label="Количество повторений в подходе ${i+1}"
+            oninput="LM.sets[${i}].reps=this.value;updateSetStats()"
+            style="color:var(--blue)"/></div>
+      </div>
+    </div>`;
+  }).join('');
+  updateSetStats();
+}
+
+function updateSetStats(){
+  const done=LM.sets.filter(s=>s.weight&&s.reps).length;
+  const pct=Math.min(done/LM.planned,1)*100;
+  document.getElementById('lm-prog-bar').style.width=pct+'%';
+  document.getElementById('lm-prog-txt').textContent=done+' / '+LM.planned;
+  document.getElementById('lm-prog-txt').style.color=LM.colorHex;
+  LM.sets.forEach((s,i)=>{
+    const card=document.getElementById('set-card-'+i);
+    const label=document.getElementById('set-label-'+i);
+    if(!card||!label) return;
+    const f=s.weight&&s.reps;
+    card.style.borderColor=f?LM.colorHex+'44':'rgba(255,255,255,.1)';
+    label.textContent='Подход '+(i+1)+(f?' ✓':'');
+    label.style.color=f?LM.colorHex:'var(--text2)';
+  });
+  const v=vol(LM.sets), mw=maxW(LM.sets);
+  const tot=document.getElementById('lm-totals');
+  if(v>0){
+    tot.style.display='grid'; tot.style.gridTemplateColumns='1fr 1fr'; tot.style.gap='10px';
+    tot.innerHTML=[{l:'Объём',v:v.toFixed(0)+' кг',c:'var(--blue)'},{l:'Макс. вес',v:mw+' кг',c:LM.colorHex}].map(s=>
+      `<div class="card" style="padding:12px;text-align:center" role="status" aria-label="${s.l}: ${s.v}">
+        <div style="font-size:22px;font-weight:700;color:${s.c}">${s.v}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${s.l}</div>
+      </div>`).join('');
+  } else tot.style.display='none';
+}
+
+function removeSet(i){if(LM.sets.length>1){LM.sets.splice(i,1);renderSets();}}
+function addSet(){LM.sets.push({weight:LM.sets[LM.sets.length-1]?.weight||'',reps:''});renderSets();}
+
+function saveLog(){
+  const valid=LM.sets.filter(s=>s.weight!==''&&s.reps!=='');
+  if(!valid.length) return;
+  haptic([40,30,40]);
+  const note=document.getElementById('lm-note').value;
+  const date=document.getElementById('lm-date').value;
+  if(LM.editId){
+    DB.logs=DB.logs.map(l=>l.id===LM.editId?{...l,sets:valid,note,date}:l);
+  } else {
+    DB.logs.push({id:Date.now()+'',wKey:LM.wKey,exName:LM.exName,date,sid:LM.sid,sets:valid,note});
+  }
+  save();
+  closeLogModal();
+  // Запустить таймер отдыха
+  openTimer(90);
+  openWorkout(LM.wKey);
+}
+function closeLogModal(){document.getElementById('log-overlay').classList.remove('open');}
+
+// ─── PROGRESS ─────────────────────────────────────────────────
+function openProgress(wKey,exName){
+  document.getElementById('prog-title').textContent=exName;
+  const base=BASE[wKey];
+  const logs=[...DB.logs].filter(l=>l.wKey===wKey&&l.exName===exName).sort((a,b)=>a.date.localeCompare(b.date));
+  const allMax=logs.length?Math.max(...logs.map(l=>maxW(l.sets))):0;
+  const last=logs[logs.length-1], prev=logs[logs.length-2];
+  const isPR=last&&maxW(last.sets)===allMax&&logs.length>1;
+  const delta=last&&prev?maxW(last.sets)-maxW(prev.sets):null;
+  document.getElementById('prog-pr').style.display=isPR?'block':'none';
+  let html='';
+  if(!logs.length){
+    html=`<div style="text-align:center;padding:80px 20px" role="status">
+      <div style="font-size:48px;margin-bottom:12px;opacity:.3" aria-hidden="true">◈</div>
+      <div style="font-size:15px;color:var(--text2)">Нет данных</div></div>`;
+  } else {
+    const dColor=delta>0?'var(--green)':delta<0?'var(--pink)':'var(--text2)';
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" role="region" aria-label="Статистика упражнения">
+      ${[{l:'Рекорд',v:allMax+'кг',c:'var(--yellow)'},{l:'Последний',v:last?maxW(last.sets)+'кг':'—',c:'var(--text)'},
+         {l:'Изменение',v:delta!==null?(delta>0?'+':'')+delta+'кг':'—',c:dColor},{l:'Сессий',v:logs.length,c:'var(--blue)'}]
+        .map(s=>`<div class="stat-card" role="listitem" aria-label="${s.l}: ${s.v}"><div class="stat-val" style="font-size:22px;color:${s.c}">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('')}
+    </div>`;
+    html+=svgChart(logs,base.colorHex);
+    html+=`<div style="font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">История</div>`;
+    [...logs].reverse().forEach(l=>{
+      const isPR2=maxW(l.sets)===allMax;
+      html+=`<div class="card" style="padding:14px 16px;margin-bottom:8px${isPR2?';border-color:rgba(255,214,10,.3)':''}" role="article" aria-label="Запись от ${fmtL(l.date)}, максимальный вес ${maxW(l.sets)} кг">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--text2)">${fmtL(l.date)}</span>
+          <span style="font-size:14px;font-weight:600;color:var(--yellow)">${maxW(l.sets)} кг · ${vol(l.sets).toFixed(0)} кг${isPR2?' 🏆':''}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${l.sets.map(s=>`<span class="chip" style="background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:400;border-radius:8px;padding:4px 10px">${s.weight}кг×${s.reps}</span>`).join('')}
+        </div>${l.note?`<div style="font-size:13px;color:var(--text2);margin-top:8px;font-style:italic">${l.note}</div>`:''}
+      </div>`;
+    });
+  }
+  document.getElementById('prog-content').innerHTML=html;
+  showScreen('scr-progress');
+}
+
+function svgChart(logs,color){
+  if(logs.length<2) return'';
+  const W=360,H=110,padL=36,padR=16,padT=20,padB=24;
+  const vals=logs.map(l=>maxW(l.sets));
+  const mn=Math.min(...vals), mx=Math.max(...vals), range=mx-mn||1;
+  const pts=vals.map((v,i)=>[padL+(W-padL-padR)*i/(vals.length-1), padT+(H-padT-padB)*(1-(v-mn)/range)]);
+  const pathD='M'+pts.map(p=>p.join(',')).join(' L');
+  const areaD=pathD+` L${pts[pts.length-1][0]},${H-padB} L${pts[0][0]},${H-padB} Z`;
+  return`<div class="card" style="padding:16px;margin-bottom:20px" role="img" aria-label="График прогресса максимального веса">
+    <div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:10px">Макс. вес (кг)</div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".3"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+      <path d="${areaD}" fill="url(#g)"/>
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="${color}"/>`).join('')}
+      <text x="${padL}" y="${H}" style="font-size:11px;fill:rgba(255,255,255,.4)">${fmt(logs[0].date)}</text>
+      <text x="${W-padR}" y="${H}" text-anchor="end" style="font-size:11px;fill:rgba(255,255,255,.4)">${fmt(logs[logs.length-1].date)}</text>
+      <text x="${padL-4}" y="${pts[0][1]+4}" text-anchor="end" style="font-size:11px;fill:${color};font-weight:600">${vals[0]}</text>
+      <text x="${W-padR+4}" y="${pts[pts.length-1][1]+4}" style="font-size:11px;fill:${color};font-weight:600">${vals[vals.length-1]}</text>
+    </svg>
+  </div>`;
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────
+function renderHistory(){
+  const filters=[['ALL','Все'],...Object.entries(BASE).map(([k,w])=>[k,w.label])];
+  document.getElementById('hist-filters').innerHTML=filters.map(([k,l])=>
+    `<button onclick="setHistFilter('${k}')" role="tab" aria-selected="${histFilter===k}" class="btn btn-sm"
+      style="${histFilter===k?'background:var(--blue);color:#fff;border:none':'background:var(--surface2);color:var(--text2);border:1px solid var(--border2)'}">${l}</button>`
+  ).join('');
+  const filtered=[...DB.logs].filter(l=>histFilter==='ALL'||l.wKey===histFilter).sort((a,b)=>b.date.localeCompare(a.date));
+  const grouped={};filtered.forEach(l=>{(grouped[l.date]||(grouped[l.date]=[])).push(l);});
+  let html='';
+  Object.entries(grouped).forEach(([date,entries])=>{
+    const sessNote=entries[0]?.sid?DB.sessions[entries[0].sid]?.note:'';
+    html+=`<div style="margin-bottom:20px" role="region" aria-label="Тренировка ${fmtL(date)}">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:${sessNote?'4px':'8px'};display:flex;justify-content:space-between">
+        <span>${fmtL(date)}</span><span>${entries.length} упр.</span></div>
+      ${sessNote?`<div style="font-size:12px;color:var(--text3);font-style:italic;margin-bottom:8px">${sessNote}</div>`:''}
+      <div class="card" style="overflow:hidden">`;
+    entries.forEach((l,i)=>{
+      const wc=BASE[l.wKey]?.colorHex||'#FFD60A';
+      html+=`<div style="padding:13px 16px;${i<entries.length-1?'border-bottom:1px solid var(--border)':''}" role="listitem">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600;margin-bottom:2px">${l.exName}</div>
+            <div style="font-size:13px;color:var(--text2)">${BASE[l.wKey]?.label||''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="text-align:right">
+              <div style="font-size:16px;font-weight:700;color:${wc}">${maxW(l.sets)} кг</div>
+              <div style="font-size:12px;color:var(--text3)">${l.sets.length} подх.</div>
+            </div>
+            <button onclick="openLogModal('${l.wKey}','${l.exName}','${l.id}','')"
+              aria-label="Редактировать запись ${l.exName}"
+              class="btn btn-sm" style="background:rgba(255,214,10,.1);color:var(--yellow);border:1px solid rgba(255,214,10,.3)">✎</button>
+            <button onclick="confirmDelete('${l.id}')"
+              aria-label="Удалить запись ${l.exName}"
+              style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;padding:4px">🗑</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" role="list" aria-label="Подходы">
+          ${l.sets.map(s=>`<span class="chip" role="listitem" style="background:rgba(255,255,255,.08);color:var(--text);font-size:13px;font-weight:400;border-radius:8px;padding:4px 10px" aria-label="${s.weight} кг на ${s.reps} повторений">${s.weight}кг×${s.reps}</span>`).join('')}
+        </div>${l.note?`<div style="font-size:13px;color:var(--text2);margin-top:6px;font-style:italic">${l.note}</div>`:''}
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+  if(!filtered.length) html=`<div style="text-align:center;padding:60px 20px;color:var(--text2);font-size:15px" role="status">Нет записей</div>`;
+  document.getElementById('hist-list').innerHTML=html;
+}
+function setHistFilter(f){histFilter=f;renderHistory();}
+
+function confirmDelete(id){
+  confirmCb=()=>{DB.logs=DB.logs.filter(l=>l.id!==id);save();renderHistory();closeConfirm();};
+  document.getElementById('conf-title').textContent='Удалить запись?';
+  document.getElementById('conf-text').textContent='Это действие нельзя отменить.';
+  document.getElementById('conf-ok').onclick=()=>{haptic(80);confirmCb();};
+  document.getElementById('confirm-ov').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirm-ov').classList.remove('open');}
+
+renderHome();
+</script>
+</body>
+</html>
